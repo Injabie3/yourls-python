@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import absolute_import, division, print_function
 
+import asyncio
 import aiohttp
 import requests
 
@@ -25,6 +26,10 @@ class YOURLSClientBase(object):
 
         self._data['format'] = 'json'
         self.session = aiohttp.ClientSession()
+
+    def __del__(self):
+        if not self.session.closed:
+            asyncio.run(self.session.close())
 
     async def _api_request(self, params):
         params = params.copy()
