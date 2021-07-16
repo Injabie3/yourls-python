@@ -23,10 +23,9 @@ AUTHOR, EMAIL = re.match(r'(.*) <(.*)>', AUTHOR_EMAIL).groups()
 
 requires = [
     'aiohttp',
-    'click',
+    'asyncclick',
     'logbook>=0.10.0',
     'represent>=1.4.0',
-    'requests',
     'six',
 ]
 

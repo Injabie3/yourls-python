@@ -7,8 +7,7 @@ import sys
 import textwrap
 from contextlib import contextmanager
 
-import click
-import requests
+import asyncclick as click
 import aiohttp
 from yourls import YOURLSAPIError, YOURLSClient, YOURLSURLExistsError
 
@@ -103,7 +102,7 @@ def format_dbstats(dbstats):
 @click.option('--username', default=config_value('username'))
 @click.option('--password', default=config_value('password'))
 @click.pass_context
-def cli(ctx, apiurl, signature, username, password):
+async def cli(ctx, apiurl, signature, username, password):
     """Command line interface for YOURLS.
 
     Configuration parameters can be passed as switches or stored in .yourls or
@@ -145,10 +144,10 @@ def cli(ctx, apiurl, signature, username, password):
 @click.option('--simple', '-s', is_flag=True,
               help='Print short URL instead of full ShortenedURL object')
 @click.pass_obj
-def shorten(yourls, url, keyword, title, only_new, simple):
+async def shorten(yourls, url, keyword, title, only_new, simple):
     new = True
     try:
-        shorturl = yourls.shorten(url, keyword=keyword, title=title)
+        shorturl = await yourls.shorten(url, keyword=keyword, title=title)
     except YOURLSURLExistsError as exc:
         shorturl = exc.url
         new = False
@@ -173,18 +172,18 @@ def shorten(yourls, url, keyword, title, only_new, simple):
 @cli.command()
 @click.argument('shorturl')
 @click.pass_obj
-def expand(yourls, shorturl):
+async def expand(yourls, shorturl):
     with catch_exceptions():
-        longurl = yourls.expand(shorturl)
+        longurl = await yourls.expand(shorturl)
     click.echo(longurl)
 
 
 @cli.command('url-stats')
 @click.argument('shorturl')
 @click.pass_obj
-def url_stats(yourls, shorturl):
+async def url_stats(yourls, shorturl):
     with catch_exceptions():
-        shorturl = yourls.url_stats(shorturl)
+        shorturl = await yourls.url_stats(shorturl)
 
     linkstr = format_shorturl(shorturl)
     click.echo(linkstr)
@@ -197,9 +196,9 @@ def url_stats(yourls, shorturl):
 @click.option('--simple', '-s', is_flag=True,
               help='Print short URLs instead of full ShortenedURL objects')
 @click.pass_obj
-def stats(yourls, filter, limit, start, simple):
+async def stats(yourls, filter, limit, start, simple):
     with catch_exceptions():
-        links, stats = yourls.stats(filter=filter, limit=limit, start=start)
+        links, stats = await yourls.stats(filter=filter, limit=limit, start=start)
     click.echo(format_dbstats(stats))
     for link in links:
         if simple:
@@ -211,9 +210,9 @@ def stats(yourls, filter, limit, start, simple):
 
 @cli.command('db-stats')
 @click.pass_obj
-def db_stats(yourls):
+async def db_stats(yourls):
     with catch_exceptions():
-        stats = yourls.db_stats()
+        stats = await yourls.db_stats()
     click.echo(format_dbstats(stats))
 
 
