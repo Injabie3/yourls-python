@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import absolute_import, division, print_function
 
+import aiohttp
 import requests
 
 from .data import (
@@ -23,19 +24,23 @@ class YOURLSClientBase(object):
                 'password or signature. Otherwise, leave set to default (None)')
 
         self._data['format'] = 'json'
+        self.session = aiohttp.ClientSession()
 
-    def _api_request(self, params):
+    async def _api_request(self, params):
         params = params.copy()
         params.update(self._data)
 
-        response = requests.get(self.apiurl, params=params)
-        jsondata = _validate_yourls_response(response, params)
-        return jsondata
+        # response = requests.get(self.apiurl, params=params)
+        # jsondata = _validate_yourls_response(response, params)
+        # return jsondata
+        async with session.get(url, params=params) as response:
+            jsondata = _validate_yourls_response(response, params)
+            return jsondata
 
 
 class YOURLSAPIMixin(object):
     """Mixin to provide default YOURLS API methods."""
-    def shorten(self, url, keyword=None, title=None):
+    async def shorten(self, url, keyword=None, title=None):
         """Shorten URL with optional keyword and title.
 
         Parameters:
@@ -71,16 +76,16 @@ class YOURLSAPIMixin(object):
             ~yourls.exceptions.YOURLSHTTPError: HTTP error with response from
                 YOURLS API.
 
-            requests.exceptions.HTTPError: Generic HTTP error.
+            aiohttp.ClientResponseError: Generic HTTP Error.
         """
         data = dict(action='shorturl', url=url, keyword=keyword, title=title)
-        jsondata = self._api_request(params=data)
+        jsondata = await self._api_request(params=data)
 
         url = _json_to_shortened_url(jsondata['url'], jsondata['shorturl'])
 
         return url
 
-    def expand(self, short):
+    async def expand(self, short):
         """Expand short URL or keyword to long URL.
 
         Parameters:
@@ -92,14 +97,14 @@ class YOURLSAPIMixin(object):
         Raises:
             ~yourls.exceptions.YOURLSHTTPError: HTTP error with response from
                 YOURLS API.
-            requests.exceptions.HTTPError: Generic HTTP error.
+            aiohttp.ClientResponseError: Generic HTTP Error.
         """
         data = dict(action='expand', shorturl=short)
-        jsondata = self._api_request(params=data)
+        jsondata = await self._api_request(params=data)
 
         return jsondata['longurl']
 
-    def url_stats(self, short):
+    async def url_stats(self, short):
         """Get stats for short URL or keyword.
 
         Parameters:
@@ -111,14 +116,14 @@ class YOURLSAPIMixin(object):
         Raises:
             ~yourls.exceptions.YOURLSHTTPError: HTTP error with response from
                 YOURLS API.
-            requests.exceptions.HTTPError: Generic HTTP error.
+            aiohttp.ClientResponseError: Generic HTTP Error.
         """
         data = dict(action='url-stats', shorturl=short)
-        jsondata = self._api_request(params=data)
+        jsondata = await self._api_request(params=data)
 
         return _json_to_shortened_url(jsondata['link'])
 
-    def stats(self, filter, limit, start=None):
+    async def stats(self, filter, limit, start=None):
         """Get stats about links.
 
         Parameters:
@@ -137,7 +142,7 @@ class YOURLSAPIMixin(object):
 
         Raises:
             ValueError: Incorrect value for filter parameter.
-            requests.exceptions.HTTPError: Generic HTTP Error
+            aiohttp.ClientResponseError: Generic HTTP Error
         """
         # Normalise random to rand, even though it's accepted by API.
         if filter == 'random':
@@ -149,7 +154,7 @@ class YOURLSAPIMixin(object):
             raise ValueError(msg)
 
         data = dict(action='stats', filter=filter, limit=limit, start=start)
-        jsondata = self._api_request(params=data)
+        jsondata = await self._api_request(params=data)
 
         stats = DBStats(total_clicks=int(jsondata['stats']['total_clicks']),
                         total_links=int(jsondata['stats']['total_links']))
@@ -163,17 +168,17 @@ class YOURLSAPIMixin(object):
 
         return links, stats
 
-    def db_stats(self):
+    async def db_stats(self):
         """Get database statistics.
 
         Returns:
             DBStats: Total clicks and links statistics.
 
         Raises:
-            requests.exceptions.HTTPError: Generic HTTP Error
+            aiohttp.ClientResponseError: Generic HTTP Error.
         """
         data = dict(action='db-stats')
-        jsondata = self._api_request(params=data)
+        jsondata = await self._api_request(params=data)
 
         stats = DBStats(total_clicks=int(jsondata['db-stats']['total_clicks']),
                         total_links=int(jsondata['db-stats']['total_links']))

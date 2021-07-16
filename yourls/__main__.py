@@ -9,6 +9,7 @@ from contextlib import contextmanager
 
 import click
 import requests
+import aiohttp
 from yourls import YOURLSAPIError, YOURLSClient, YOURLSURLExistsError
 
 """yourls
@@ -56,7 +57,7 @@ def config_value(name):
 def catch_exceptions():
     try:
         yield
-    except (YOURLSAPIError, requests.RequestException) as exc:
+    except (YOURLSAPIError, aiohttp.ClientError) as exc:
         error_msg = exc.args[0]
         # Prevent duplicate "Error: ", because Click adds it too.
         error_msg = error_msg.replace('Error: ', '')

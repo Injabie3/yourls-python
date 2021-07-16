@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 
 from requests import HTTPError
+from aiohttp import ClientResponseError
 
 
 class YOURLSAPIError(Exception):
@@ -10,7 +11,7 @@ class YOURLSAPIError(Exception):
         super(YOURLSAPIError, self).__init__(*args, **kwargs)
 
 
-class YOURLSHTTPError(YOURLSAPIError, HTTPError):
+class YOURLSHTTPError(YOURLSAPIError, ClientResponseError):
     """Raised when YOURLS API returns HTTP error with response."""
     def __init__(self, *args, **kwargs):
         super(YOURLSHTTPError, self).__init__(*args, **kwargs)

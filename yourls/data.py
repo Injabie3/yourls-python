@@ -7,6 +7,7 @@ from datetime import datetime
 import six
 from represent import ReprHelperMixin
 from requests import HTTPError
+from aiohttp import ClientRepsonseError
 
 from .exceptions import (
     YOURLSAPIError, YOURLSHTTPError, YOURLSKeywordExistsError,
@@ -127,7 +128,7 @@ def _validate_yourls_response(response, data):
     """Validate response from YOURLS server."""
     try:
         response.raise_for_status()
-    except HTTPError as http_exc:
+    except ClientResponseError as http_exc:
         # Collect full HTTPError information so we can reraise later if required.
         http_error_info = sys.exc_info()
 

@@ -22,6 +22,7 @@ DESCRIPTION = metadata['description']
 AUTHOR, EMAIL = re.match(r'(.*) <(.*)>', AUTHOR_EMAIL).groups()
 
 requires = [
+    'aiohttp',
     'click',
     'logbook>=0.10.0',
     'represent>=1.4.0',
