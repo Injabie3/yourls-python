@@ -7,7 +7,7 @@ from datetime import datetime
 import six
 from represent import ReprHelperMixin
 from requests import HTTPError
-from aiohttp import ClientRepsonseError
+from aiohttp import ClientResponseError
 
 from .exceptions import (
     YOURLSAPIError, YOURLSHTTPError, YOURLSKeywordExistsError,
@@ -124,7 +124,7 @@ def _handle_api_error_with_json(http_exc, jsondata, response):
     raise YOURLSHTTPError(http_error_message, response=response)
 
 
-def _validate_yourls_response(response, data):
+async def _validate_yourls_response(response, data):
     """Validate response from YOURLS server."""
     try:
         response.raise_for_status()
@@ -150,7 +150,7 @@ def _validate_yourls_response(response, data):
     else:
         # We have a valid HTTP response, but we need to check what the API says
         # about the request.
-        jsondata = response.json()
+        jsondata = await response.json()
 
         logger.debug('Received {response} with JSON {json}', response=response,
                      json=jsondata)

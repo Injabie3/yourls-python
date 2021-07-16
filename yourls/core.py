@@ -33,8 +33,8 @@ class YOURLSClientBase(object):
         # response = requests.get(self.apiurl, params=params)
         # jsondata = _validate_yourls_response(response, params)
         # return jsondata
-        async with session.get(url, params=params) as response:
-            jsondata = _validate_yourls_response(response, params)
+        async with self.session.get(self.apiurl, params=params) as response:
+            jsondata = await _validate_yourls_response(response, params)
             return jsondata
 
 
@@ -153,7 +153,9 @@ class YOURLSAPIMixin(object):
             msg = 'filter must be one of {}'.format(', '.join(valid_filters))
             raise ValueError(msg)
 
-        data = dict(action='stats', filter=filter, limit=limit, start=start)
+        data = dict(action='stats', filter=filter, limit=limit)
+        if start:
+            data.update({"start": start})
         jsondata = await self._api_request(params=data)
 
         stats = DBStats(total_clicks=int(jsondata['stats']['total_clicks']),
